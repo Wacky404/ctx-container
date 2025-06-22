@@ -1,0 +1,19 @@
+
+            █▀▀█ █▀▀█ █▀▀ █▀▀▄      █▀▀ █▀▀█ █▀▀▄ █▀▀
+            █░░█ █░░█ █▀▀ █░░█      █░░ █░░█ █░░█ █▀▀
+            ▀▀▀▀ █▀▀▀ ▀▀▀ ▀  ▀      ▀▀▀ ▀▀▀▀ ▀▀▀  ▀▀▀
+
+Commands:
+  opencode [project]         start opencode TUI                        [default]
+  opencode run [message..]   Run opencode with a message
+  opencode auth              Manage credentials
+  opencode upgrade [target]  upgrade opencode to the latest version or a
+                             specific version
+
+Positionals:
+  project  path to start opencode in                                    [string]
+
+Options:
+  --help        Show help                                              [boolean]
+  --version     Show version number                                    [boolean]
+  --print-logs  Print logs to stderr                                   [boolean]

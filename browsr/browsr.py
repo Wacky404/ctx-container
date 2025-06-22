@@ -22,6 +22,9 @@ from browsr.base import (
 )
 from browsr.screens import CodeBrowserScreen
 
+import logging
+from util.logger import setup_logging
+
 
 class Browsr(SortedBindingsApp):
     """
@@ -64,7 +67,15 @@ class Browsr(SortedBindingsApp):
         """
         super().__init__(*args, **kwargs)
         self.config_object = config_object or TextualAppContext()
-        self.code_browser_screen = CodeBrowserScreen(config_object=self.config_object)
+
+        numeric_loglevel = getattr(logging, self.config_object.loglvl)
+        if isinstance(numeric_loglevel, int):
+            setup_logging(numeric_loglevel)
+        else:
+            setup_logging()
+
+        self.code_browser_screen = CodeBrowserScreen(
+            config_object=self.config_object)
         self.install_screen(self.code_browser_screen, name="code-browser")
 
     @on(Mount)

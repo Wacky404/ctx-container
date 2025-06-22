@@ -60,6 +60,22 @@ rich_click.rich_click.STYLE_COMMANDS_TABLE_BOX = "SIMPLE_HEAVY"
     show_envvar=True,
 )
 @click.option(
+    "--log",
+    default='INFO',  # NOTSET=0, DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
+    help='DEBUG: Detailed information for diagnosing problems | '
+
+    'INFO: Confirmation that things are working | '
+
+    'WARNING: Indication that something unexpected happened. Program still running | '
+
+    'ERROR: Not able to perform some function of the program | '
+
+    'CRITICAL: Serious error, program may be unable to continue running',
+    type=str,
+    envvar="LOG_LEVEL",
+    show_envvar=True,
+)
+@click.option(
     "-k",
     "--kwargs",
     multiple=True,
@@ -70,6 +86,7 @@ rich_click.rich_click.STYLE_COMMANDS_TABLE_BOX = "SIMPLE_HEAVY"
 def browsr(
     path: Optional[str],
     debug: bool,
+    loglvl: str,
     max_lines: int,
     max_file_size: int,
     kwargs: Tuple[str, ...],
@@ -199,6 +216,7 @@ def browsr(
     - **`R`** - Reload the current directory
     - **`C`** - Copy the current file or directory path to the clipboard
     - **`X`** - Download the file from cloud storage
+    - **`S`** - Toggle Select a directory/file to be added to list
     """
     extra_kwargs = {}
     if kwargs:
@@ -218,6 +236,7 @@ def browsr(
     config = TextualAppContext(
         file_path=file_path,
         debug=debug,
+        loglvl=loglvl,
         max_file_size=max_file_size,
         max_lines=max_lines,
         kwargs=extra_kwargs,

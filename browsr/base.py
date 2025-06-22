@@ -26,6 +26,7 @@ class TextualAppContext:
     file_path: str = field(default_factory=os.getcwd)
     config: dict[str, Any] | None = None
     debug: bool = False
+    loglvl: str = 'NOTSET'
     max_file_size: int = 20
     max_lines: int = 1000
     kwargs: dict[str, Any] | None = None
@@ -92,14 +93,16 @@ class SortedBindingsApp(App[str]):
             return existing_bindings
         builtin_index = 500
         max_weight = 999
-        binding_range = range(builtin_index, builtin_index + len(existing_bindings))
+        binding_range = range(
+            builtin_index, builtin_index + len(existing_bindings))
         weights = dict(zip(existing_bindings.keys(), binding_range))
         if max(*self.BINDING_WEIGHTS.values(), 0) > max_weight:
             raise ValueError("Binding weights must be less than 1000")
         elif min(*self.BINDING_WEIGHTS.values(), 1) < 1:
             raise ValueError("Binding weights must be greater than 0")
         elif set(self.BINDING_WEIGHTS.values()).intersection(binding_range):
-            raise ValueError("Binding weights must not overlap with existing bindings")
+            raise ValueError(
+                "Binding weights must not overlap with existing bindings")
         weights.update(self.BINDING_WEIGHTS)
         updated_bindings = dict(
             sorted(

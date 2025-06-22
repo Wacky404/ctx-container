@@ -72,7 +72,8 @@ class CurrentFileInfoBar(Widget):
             self.file_info.last_modified is not None
             and self.file_info.last_modified.timestamp() != 0
         ):
-            modify_time = self.file_info.last_modified.strftime("%b %d, %Y %I:%M %p")
+            modify_time = self.file_info.last_modified.strftime(
+                "%b %d, %Y %I:%M %p")
             status_string += f"  📅  {modify_time}"
         directory_options = self.render_directory_options()
         status_string += directory_options

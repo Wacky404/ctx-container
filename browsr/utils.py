@@ -14,6 +14,18 @@ from PIL import Image
 from rich_pixels import Pixels
 from textual_universal_directorytree import UPath, is_remote_path
 
+from tokenizers import Tokenizer
+from tokenizers.models import BPE
+from tokenizers.pre_tokenizers import Whitespace
+from tokenizers.trainers import BpeTrainer
+
+# might scrap this and do a pretrained tokenizer from tiktoken
+TOKENIZER = Tokenizer(BPE())
+TOKENIZER.pre_tokenizer = Whitespace()
+trainer = BpeTrainer(
+    special_tokens=["[UNK]", "[CLS]", "[SEP]", "[PAD]", "[MASK]"])
+TOKENIZER.train(files=[], trainer=trainer)
+
 
 def _open_pdf_as_image(buf: BinaryIO) -> Image.Image:
     """
@@ -58,6 +70,7 @@ class FileInfo:
 
     file: UPath
     size: int
+    tokens: int
     last_modified: Optional[datetime.datetime]
     stat: Union[Dict[str, Any], os.stat_result]
     is_local: bool
@@ -67,18 +80,23 @@ class FileInfo:
     is_cloudpath: bool
 
 
+def tokenizing(buf: bytes) -> int:
+    return 0
+
+
 def get_file_info(file_path: UPath) -> FileInfo:
     """
     Get File Information, Regardless of the FileSystem
     """
     try:
         stat: Union[Dict[str, Any], os.stat_result] = file_path.stat()
+        token_size = tokenizing(buf=file_path.read_bytes())
         is_file = file_path.is_file()
     except PermissionError:
-        stat = {"size": 0}
+        stat = {"size": 0, "tokens": 0}
         is_file = True
     except FileNotFoundError:
-        stat = {"size": 0}
+        stat = {"size": 0, "tokens": 0}
         is_file = True
     is_cloudpath = is_remote_path(file_path)
     if isinstance(stat, dict):
@@ -95,6 +113,7 @@ def get_file_info(file_path: UPath) -> FileInfo:
         return FileInfo(
             file=file_path,
             size=file_size,
+            tokens=token_size,
             last_modified=last_modified,
             stat=stat,
             is_local=False,
@@ -116,6 +135,7 @@ def get_file_info(file_path: UPath) -> FileInfo:
         return FileInfo(
             file=file_path,
             size=stat.st_size,
+            tokens=token_size,
             last_modified=last_modified,
             stat=stat,
             is_local=True,
@@ -182,7 +202,8 @@ def handle_github_url(url: str) -> str:
     resp.raise_for_status()
     default_branch = resp.json()["default_branch"]
     arg_str = "/".join(args)
-    github_uri = f"{gitub_prefix}{org}:{repo}@{default_branch}/{arg_str}".rstrip("/")
+    github_uri = f"{gitub_prefix}{org}:{repo}@{default_branch}/{arg_str}".rstrip(
+        "/")
     return github_uri
 
 

@@ -1,0 +1,15 @@
+opencode run [message..]
+
+Run opencode with a message
+
+Positionals:
+  message  message to send                                 [array] [default: []]
+
+Options:
+      --help        Show help                                          [boolean]
+      --version     Show version number                                [boolean]
+      --print-logs  Print logs to stderr                               [boolean]
+  -c, --continue    Continue the last session                          [boolean]
+  -s, --session     Session ID to continue                              [string]
+      --share       share the session                                  [boolean]
+  -m, --model       Model to use in the format of provider/model        [string]

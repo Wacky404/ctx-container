@@ -2,7 +2,7 @@
 `browsr` version file.
 """
 
-__author__ = "Justin Flannery"
-__email__ = "justin.flannery@juftin.com"
-__application__ = "browsr"
-__version__ = "1.21.0"
+__author__ = "Wayne Cole"
+__email__ = "hi@waynecole.info"
+__application__ = "ctx-container"
+__version__ = "0.0.1"

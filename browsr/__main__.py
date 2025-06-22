@@ -1,5 +1,5 @@
 """
-browsr __main__ hook
+ctx-container __main__ hook
 """
 
 from browsr.cli import browsr

@@ -4,7 +4,8 @@ requires = ["hatchling"]
 
 [project]
 authors = [
-  {name = "Justin Flannery", email = "juftin@juftin.com"}
+{name = "Justin Flannery", email = "juftin@juftin.com"},
+{name = "Wayne Cole", email = "hi@waynecole.info"},
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -32,13 +33,13 @@ dependencies = [
   "PyMuPDF~=1.23.26",
   "pyperclip~=1.8.2"
 ]
-description = "TUI File Browser App"
+description = "Extension to Opencode for isolated Agent Actions"
 dynamic = ["version"]
 keywords = []
 license = "MIT"
-name = "browsr"
+name = "ctx-container"
 readme = "README.md"
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.8.1,<4"
 
 [project.optional-dependencies]
 all = [
@@ -91,7 +92,7 @@ pip-compile-constraint = ""
 template = "test"
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [tool.hatch.envs.default]
 features = ["all"]
@@ -244,3 +245,9 @@ known-first-party = ["browsr"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
+
+[tool.hatch.build.targets.wheel]
+packages = ["browsr"]
+
+[tool.hatch.build.targets.editable]
+packages = ["browsr"]
