@@ -1,8 +1,8 @@
 """
-ctx __main__ hook
+ctxflow __main__ hook
 """
 
-from ctx.cli import ctx
+from ctxflow.cli import ctx
 
 
 def main() -> None:

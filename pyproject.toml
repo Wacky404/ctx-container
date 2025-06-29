@@ -1,8 +1,9 @@
 [build-system]
-build-backend = "hatchling.build"
 requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
+name = "ctxflow"
 authors = [
 {name = "Justin Flannery", email = "juftin@juftin.com"},
 {name = "Wayne Cole", email = "hi@waynecole.info"},
@@ -35,12 +36,13 @@ dependencies = [
   "requests>=2.32.4",
   "gitingest>=0.1.5",
   "pexpect>=4.9.0",
+  "pip>=25.0.1",
+  "hatch>=1.14.1",
 ]
-description = "Extension to Opencode for isolated Agent Actions"
+description = "ctxflow to keep you developing with ease"
 dynamic = ["version"]
 keywords = []
 license = "MIT"
-name = "ctx"
 readme = "README.md"
 requires-python = ">=3.8.1,<4"
 
@@ -60,16 +62,16 @@ remote = [
 ]
 
 [project.scripts]
-ctx = "ctx.__main__:main"
+ctx = "ctxflow.__main__:main"
 
 [project.urls]
-Documentation = "https://github.com/juftin/ctx-container#readme"
-Issues = "https://github.com/juftin/ctx-container/issues"
-Source = "https://github.com/juftin/ctx-container"
+Documentation = "https://github.com/Wacky404/ctx-container#readme"
+Issues = "https://github.com/Wacky404/ctx-container/issues"
+Source = "https://github.com/Wacky404/ctx-container"
 
 [tool.coverage.paths]
-ctx = ["ctx", "*/ctx/ctx"]
-tests = ["tests", "*/ctx/tests"]
+ctxflow = ["ctxflow", "*/ctx/ctxflow"]
+tests = ["tests", "*/ctxflow/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -80,9 +82,9 @@ exclude_lines = [
 
 [tool.coverage.run]
 branch = true
-omit = ["ctx/__about__.py"]
+omit = ["ctxflow/__about__.py"]
 parallel = true
-source_pkgs = ["ctx", "tests"]
+source_pkgs = ["ctxflow", "tests"]
 
 [tool.hatch.env]
 requires = ["hatch-pip-compile", "hatch-mkdocs"]
@@ -156,7 +158,7 @@ style = [
   "ruff {args:.}",
   "ruff format --check --diff {args:.}"
 ]
-typing = "mypy --install-types --non-interactive {args:ctx tests}"
+typing = "mypy --install-types --non-interactive {args:ctxflow tests}"
 
 [tool.hatch.envs.test]
 dependencies = [
@@ -173,7 +175,7 @@ cov = "pytest --cov --cov-config=pyproject.toml {args:tests}"
 test = "pytest {args:tests}"
 
 [tool.hatch.version]
-path = "ctx/__about__.py"
+path = "ctxflow/__about__.py"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -240,7 +242,7 @@ target-version = "py38"
 ban-relative-imports = "all"
 
 [tool.ruff.isort]
-known-first-party = ["ctx"]
+known-first-party = ["ctxflow"]
 
 [tool.ruff.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
@@ -250,7 +252,11 @@ known-first-party = ["ctx"]
 convention = "numpy"
 
 [tool.hatch.build.targets.wheel]
-packages = ["ctx"]
+packages = ["ctxflow"]
 
 [tool.hatch.build.targets.editable]
-packages = ["ctx"]
+packages = ["ctxflow"]
+
+[tool.hatch.publish]
+[tool.hatch.publish.token]
+value = "${PYPI_TOKEN}"

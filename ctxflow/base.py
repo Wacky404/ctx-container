@@ -14,8 +14,8 @@ from textual.binding import Binding
 from textual.dom import DOMNode
 from textual_universal_directorytree import UPath
 
-from ctx.utils import handle_github_url
-from ctx.logger import logger
+from ctxflow.utils import handle_github_url
+from ctxflow.logger import logger
 
 
 @dataclass

@@ -16,10 +16,10 @@ from textual.widget import Widget
 from textual.widgets import Footer, Header
 from textual_universal_directorytree import UPath
 
-from ctx.base import TextualAppContext
-from ctx.utils import get_file_info
-from ctx.widgets.code_browser import CodeBrowser
-from ctx.widgets.files import CurrentFileInfoBar
+from ctxflow.base import TextualAppContext
+from ctxflow.utils import get_file_info
+from ctxflow.widgets.code_browser import CodeBrowser
+from ctxflow.widgets.files import CurrentFileInfoBar
 
 
 class CodeBrowserScreen(Screen):

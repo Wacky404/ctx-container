@@ -23,20 +23,21 @@ from textual_universal_directorytree import (
     is_remote_path,
 )
 
-from ctx.base import (
+from ctxflow.base import (
     TextualAppContext,
 )
-from ctx.config import favorite_themes
-from ctx.exceptions import FileSizeError
-from ctx.utils import (
+from ctxflow.config import favorite_themes
+from ctxflow.exceptions import FileSizeError
+from ctxflow.utils import (
     get_file_info,
     handle_duplicate_filenames,
 )
-from ctx.widgets.confirmation import ConfirmationPopUp, ConfirmationWindow
-from ctx.widgets.double_click_directory_tree import DoubleClickDirectoryTree
-from ctx.widgets.files import CurrentFileInfoBar
-from ctx.widgets.universal_directory_tree import BrowsrDirectoryTree
-from ctx.widgets.windows import DataTableWindow, StaticWindow, WindowSwitcher
+from ctxflow.widgets.confirmation import ConfirmationPopUp, ConfirmationWindow
+from ctxflow.widgets.double_click_directory_tree import DoubleClickDirectoryTree
+
+from ctxflow.widgets.files import CurrentFileInfoBar
+from ctxflow.widgets.universal_directory_tree import BrowsrDirectoryTree
+from ctxflow.widgets.windows import DataTableWindow, StaticWindow, WindowSwitcher
 
 
 class CodeBrowser(Container):

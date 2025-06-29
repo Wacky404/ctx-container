@@ -22,15 +22,15 @@ from textual.widget import Widget
 from textual.widgets import Static
 from textual_universal_directorytree import UPath
 
-from ctx.base import TextualAppContext
-from ctx.config import favorite_themes, image_file_extensions
-from ctx.exceptions import FileSizeError
-from ctx.utils import (
+from ctxflow.base import TextualAppContext
+from ctxflow.config import favorite_themes, image_file_extensions
+from ctxflow.exceptions import FileSizeError
+from ctxflow.utils import (
     ArchiveFileError,
     FileInfo,
     open_image,
 )
-from ctx.widgets.vim import VimDataTable, VimScroll
+from ctxflow.widgets.vim import VimDataTable, VimScroll
 
 
 class BaseCodeWindow(Widget):

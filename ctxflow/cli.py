@@ -3,11 +3,11 @@
 ctx command line interface
 """
 from pprint import pprint
-from ctx.browsr import Browsr
-from ctx.base import (
+from ctxflow.browsr import Browsr
+from ctxflow.base import (
     TextualAppContext,
 )
-from ctx.__about__ import __application__, __version__
+from ctxflow.__about__ import __application__, __version__
 import rich_click
 import click
 from typing import Optional, Tuple, Any, Callable, TypeVar, List
@@ -17,8 +17,8 @@ import subprocess
 from subprocess import CompletedProcess, PIPE
 
 import logging
-from ctx.logger import setup_logging, logger
-from ctx.utils import cmd_builder, initial
+from ctxflow.logger import setup_logging, logger
+from ctxflow.utils import cmd_builder, initial
 
 import pexpect
 

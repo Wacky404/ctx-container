@@ -11,8 +11,8 @@ from textual.widgets._directory_tree import DirEntry
 from textual.widgets._tree import TreeNode
 from textual_universal_directorytree import UniversalDirectoryTree, UPath
 
-from ctx.widgets.double_click_directory_tree import DoubleClickDirectoryTree
-from ctx.widgets.vim import vim_cursor_bindings
+from ctxflow.widgets.double_click_directory_tree import DoubleClickDirectoryTree
+from ctxflow.widgets.vim import vim_cursor_bindings
 
 
 class BrowsrDirectoryTree(DoubleClickDirectoryTree, UniversalDirectoryTree):

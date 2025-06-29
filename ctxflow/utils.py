@@ -16,7 +16,7 @@ from rich_pixels import Pixels
 from textual_universal_directorytree import UPath, is_remote_path
 
 import click
-from ctx.logger import logger
+from ctxflow.logger import logger
 
 # from tokenizers import Tokenizer
 # from toeaenizers.models import BPE

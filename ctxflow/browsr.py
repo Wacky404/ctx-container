@@ -17,15 +17,15 @@ from textual import on
 from textual.binding import Binding, BindingType
 from textual.events import Mount
 
-from ctx.__about__ import __application__
-from ctx.base import (
+from ctxflow.__about__ import __application__
+from ctxflow.base import (
     SortedBindingsApp,
     TextualAppContext,
 )
-from ctx.screens import CodeBrowserScreen
+from ctxflow.screens import CodeBrowserScreen
 
 import logging
-from ctx.logger import setup_logging
+from ctxflow.logger import setup_logging
 
 
 class Browsr(SortedBindingsApp):

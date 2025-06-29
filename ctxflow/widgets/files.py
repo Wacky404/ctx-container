@@ -14,7 +14,7 @@ from textual_universal_directorytree import (
     is_remote_path,
 )
 
-from ctx.utils import FileInfo
+from ctxflow.utils import FileInfo
 
 
 class CurrentFileInfoBar(Widget):
