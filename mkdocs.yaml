@@ -1,8 +1,8 @@
 # schema: https://squidfunk.github.io/mkdocs-material/schema.json
 
-site_name: browsr
+site_name: ctx
 nav:
-    - browsr 🗂️: index.md
+    - ctx 🗂️: index.md
     - Command Line Interface ⌨️: cli.md
     - Contributing 🤝: contributing.md
     - API Documentation 🤖: reference/
@@ -28,12 +28,12 @@ theme:
           toggle:
               icon: material/weather-night
               name: Switch to light mode
-repo_url: https://github.com/juftin/browsr
-repo_name: browsr
+repo_url: https://github.com/Wacky404/ctx-container
+repo_name: ctx-container
 edit_uri: blob/main/docs/
-site_author: Justin Flannery
+site_author: Wayne Cole
 remote_branch: gh-pages
-copyright: Copyright © 2023 Justin Flannery
+copyright: Copyright © 2023 Wayne Cole
 extra:
     generator: false
 exclude_docs: |

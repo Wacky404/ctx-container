@@ -31,13 +31,16 @@ dependencies = [
   "universal-pathlib~=0.2.2",
   "Pillow>=10.2.0",
   "PyMuPDF~=1.23.26",
-  "pyperclip~=1.8.2"
+  "pyperclip~=1.8.2",
+  "requests>=2.32.4",
+  "gitingest>=0.1.5",
+  "pexpect>=4.9.0",
 ]
 description = "Extension to Opencode for isolated Agent Actions"
 dynamic = ["version"]
 keywords = []
 license = "MIT"
-name = "ctx-container"
+name = "ctx"
 readme = "README.md"
 requires-python = ">=3.8.1,<4"
 
@@ -57,16 +60,16 @@ remote = [
 ]
 
 [project.scripts]
-browsr = "browsr.__main__:browsr"
+ctx = "ctx.__main__:main"
 
 [project.urls]
-Documentation = "https://github.com/juftin/browsr#readme"
-Issues = "https://github.com/juftin/browsr/issues"
-Source = "https://github.com/juftin/browsr"
+Documentation = "https://github.com/juftin/ctx-container#readme"
+Issues = "https://github.com/juftin/ctx-container/issues"
+Source = "https://github.com/juftin/ctx-container"
 
 [tool.coverage.paths]
-browsr = ["browsr", "*/browsr/browsr"]
-tests = ["tests", "*/browsr/tests"]
+ctx = ["ctx", "*/ctx/ctx"]
+tests = ["tests", "*/ctx/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -77,9 +80,9 @@ exclude_lines = [
 
 [tool.coverage.run]
 branch = true
-omit = ["browsr/__about__.py"]
+omit = ["ctx/__about__.py"]
 parallel = true
-source_pkgs = ["browsr", "tests"]
+source_pkgs = ["ctx", "tests"]
 
 [tool.hatch.env]
 requires = ["hatch-pip-compile", "hatch-mkdocs"]
@@ -153,7 +156,7 @@ style = [
   "ruff {args:.}",
   "ruff format --check --diff {args:.}"
 ]
-typing = "mypy --install-types --non-interactive {args:browsr tests}"
+typing = "mypy --install-types --non-interactive {args:ctx tests}"
 
 [tool.hatch.envs.test]
 dependencies = [
@@ -170,7 +173,7 @@ cov = "pytest --cov --cov-config=pyproject.toml {args:tests}"
 test = "pytest {args:tests}"
 
 [tool.hatch.version]
-path = "browsr/__about__.py"
+path = "ctx/__about__.py"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -237,7 +240,7 @@ target-version = "py38"
 ban-relative-imports = "all"
 
 [tool.ruff.isort]
-known-first-party = ["browsr"]
+known-first-party = ["ctx"]
 
 [tool.ruff.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
@@ -247,7 +250,7 @@ known-first-party = ["browsr"]
 convention = "numpy"
 
 [tool.hatch.build.targets.wheel]
-packages = ["browsr"]
+packages = ["ctx"]
 
 [tool.hatch.build.targets.editable]
-packages = ["browsr"]
+packages = ["ctx"]
