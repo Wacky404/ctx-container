@@ -5,4 +5,4 @@
 __author__ = "Wayne Cole"
 __email__ = "hi@waynecole.info"
 __application__ = "browsr"
-__version__ = "0.0.1"
+__version__ = "0.0.2"

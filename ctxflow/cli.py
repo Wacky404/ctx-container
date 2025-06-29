@@ -119,7 +119,9 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
         (os.path.join(SCRIPT_DIR, 'prompts', 'protocol', 'SharedProtocol.md'),
          os.path.join(cwd, 'ai_docs', 'protocol', 'SharedProtocol.md')),
         (os.path.join(SCRIPT_DIR, 'prompts', 'OrchCtxPrime.md'),
-         os.path.join(cwd, 'ai_docs', 'OrchCtxPrime.md'))
+         os.path.join(cwd, 'ai_docs', 'OrchCtxPrime.md')),
+        (os.path.join(SCRIPT_DIR, 'prompts', 'user', 'TEST_SCENARIOS.md'),
+         os.path.join(cwd, 'ai_docs', 'EXAMPLE_SCENARIOS.md')),
     )
 
     click.echo("Creating the necessary directories...")
