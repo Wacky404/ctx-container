@@ -1,0 +1,11 @@
+opencode upgrade [target]
+
+upgrade opencode to the latest version or a specific version
+
+Positionals:
+  target  specific version to upgrade to (e.g., '0.1.48' or 'v0.1.48')  [string]
+
+Options:
+  --help        Show help                                              [boolean]
+  --version     Show version number                                    [boolean]
+  --print-logs  Print logs to stderr                                   [boolean]

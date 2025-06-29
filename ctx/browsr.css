@@ -1,0 +1,86 @@
+/* -- SCREENS -- */
+
+CodeBrowserScreen {
+    background: $surface-darken-1;
+}
+
+/* -- CodeBrowserScreen -- */
+
+CodeBrowser {
+    background: $surface-darken-1;
+    color: $text;
+}
+
+CodeBrowser.-show-tree #tree-view {
+    display: block;
+    max-width: 50%;
+}
+
+#tree-view {
+    display: none;
+    scrollbar-gutter: stable;
+    overflow: auto;
+    width: auto;
+    height: 100%;
+    dock: left;
+}
+
+CurrentFileInfoBar {
+    width: 100%;
+}
+
+#file-info-bar {
+    dock: bottom;
+    padding: 0 1;
+    margin-bottom: 1;
+    background: $accent-darken-3;
+    color: $text;
+    height: 1;
+}
+
+/* -- CodeBrowser -- */
+
+/*WindowSwitcher {*/
+
+/*}*/
+
+/* -- WindowSwitcher -- */
+
+VimScroll {
+    overflow: auto scroll;
+    min-width: 100%;
+}
+
+StaticWindow {
+    width: auto;
+}
+
+DataTableWindow {
+    overflow: auto scroll;
+    min-width: 100%;
+    height: 100%;
+}
+
+/* -- ConfirmationPopUp -- */
+
+ConfirmationWindow {
+    width: 100%;
+    height: 100%;
+    align: center middle;
+}
+
+ConfirmationPopUp {
+    background: $boost;
+    height: auto;
+    max-width: 100;
+    min-width: 40;
+    border: wide $primary;
+    padding: 1 2;
+    margin: 1 2;
+    box-sizing: border-box;
+}
+
+ConfirmationPopUp Button {
+    margin-top: 1;
+    width: 100%;
+}
