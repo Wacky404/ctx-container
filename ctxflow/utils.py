@@ -44,7 +44,6 @@ def initial(cpyf: tuple[tuple[str, str], ...]) -> None:
         os.path.join(cwd, ".claude", "commands"),
         os.path.join(cwd, ".claude", "hooks"),
         os.path.join(cwd, ".claude", "templates"),
-        os.path.join(cwd, ".claude", "utils"),
         os.path.join(home, "ctxflow", "audio"),
     ]
     for dir in dirs:

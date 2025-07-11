@@ -22,6 +22,7 @@ def is_dangerous_rm_command(command: str) -> bool:
         r'\brm\s+.*-[a-z]*f[a-z]*r',  # rm -fr variations
         r'\brm\s+--recursive\s+--force',  # rm --recursive --force
         r'\brm\s+--force\s+--recursive',  # rm --force --recursive
+        r'\brm\s+.*-[a-z]*r',  # rm -r (recursive without force)
         r'\brm\s+-r\s+.*-f',  # rm -r ... -f
         r'\brm\s+-f\s+.*-r',  # rm -f ... -r
     ]

@@ -1,3 +1,4 @@
+# TODO: Need to stop the .env file from being overwritten, stop gitingest from doing logs/, fix TTS
 """
 ctx command line interface
 """

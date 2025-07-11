@@ -1,5 +1,6 @@
 ---
+allowed-tools: Bash
 description: system prompt in xml
 ---
 
-!`bash ./.claude/utils/template-processor.sh prime.xml`
+!`bash ./.claude/templates/template-processor.sh prime.xml`
