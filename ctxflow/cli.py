@@ -1,4 +1,3 @@
-# TODO: left off trying to get opencode to generate an AGENTS.md file for context priming on ctx command; can't figure out how to send down keys correctly!!
 """
 ctx command line interface
 """
@@ -13,14 +12,13 @@ import click
 from typing import Optional, Tuple, Any, Callable, TypeVar, List
 import os
 import sys
+import shutil
 import subprocess
-from subprocess import CompletedProcess, PIPE
+from subprocess import PIPE
 
 import logging
 from ctxflow.logger import setup_logging, logger
 from ctxflow.utils import cmd_builder, initial
-
-import pexpect
 
 
 rich_click.rich_click.MAX_WIDTH = 100
@@ -43,8 +41,9 @@ BS_ALIAS: str = "browsr"
 GI_ALIAS: str = "gitingest"
 OC_VERSION: str = str(subprocess.check_output(
     f"{OC_ALIAS} --version", shell=True, text=True)).strip()
-AGENT_PREF: str = "opencode"
+AGENT_PREF: str = "claude"
 SCRIPT_DIR: str = os.path.dirname((os.path.abspath(__file__)))
+HOME_DIR: str = os.path.expanduser("~")
 F = TypeVar("F", bound=Callable[..., None])
 
 
@@ -81,7 +80,6 @@ def command_with_aliases(
 )
 @click.option("--agent", default=AGENT_PREF, type=click.Choice(['opencode', 'claude']), help="choose the terminal agent you want to stage context for")
 @click.option("--new-digest", default=False, is_flag=True, help="generate a new digest.txt file")
-# TODO: Put my most used use-case here for very quick access
 def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> None:
     """
     CTXFLOW 💭 control the enviroment and context passed to your Terminal Agent
@@ -91,6 +89,17 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
         setup_logging(numeric_loglevel)
     else:
         setup_logging(log_lvl_stdout=TextualAppContext().loglvl)
+
+    cli_ctx.ensure_object(dict)
+    cli_ctx.obj['ctx'] = {
+        "flags": {"--log-lvl": log_lvl, "--agent": agent, "--new-digest": new_digest},
+        "args": {},
+        "commands": {
+            "browsr": {},
+            "opencode": {},
+            "gitingest": {},
+        }
+    }
 
     cwd: str = os.getcwd()
     if new_digest:
@@ -113,34 +122,49 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
                                 logger.debug(line.strip())
                     return
 
-    cpydocs: tuple[tuple[str, str], ...] = (
+        cli_ctx.exit(code=0)
+
+    cpydirs: tuple[tuple[str, str], ...] = (
+        # directory - persistent storage
+        (os.path.join(SCRIPT_DIR, '.ctxflow'),
+         os.path.join(HOME_DIR, '.ctxflow')),
+        # directory - implanting .claude commands dir
+        (os.path.join(SCRIPT_DIR, 'claude', 'commands'),
+         os.path.join(cwd, '.claude', 'commands')),
+        # directory - implanting .claude hooks dir
+        (os.path.join(SCRIPT_DIR, 'claude', 'hooks'),
+         os.path.join(cwd, '.claude', 'hooks')),
+    )
+    cpyfiles: tuple[tuple[str, str], ...] = (
+        # file - implanting .claude hooks dir
+        (os.path.join(SCRIPT_DIR, 'claude', 'settings.json'),
+         os.path.join(cwd, '.claude', 'settings.json')),
+        # file
         (os.path.join(SCRIPT_DIR, 'prompts', 'agentic', 'CtxPrime.md'),
          os.path.join(cwd, 'ai_docs', 'agent', 'AgentPrime.md')),
+        # file
         (os.path.join(SCRIPT_DIR, 'prompts', 'protocol', 'SharedProtocol.md'),
          os.path.join(cwd, 'ai_docs', 'protocol', 'SharedProtocol.md')),
-        (os.path.join(SCRIPT_DIR, 'prompts', 'OrchCtxPrime.md'),
-         os.path.join(cwd, 'ai_docs', 'OrchCtxPrime.md')),
+        # file
+        (os.path.join(SCRIPT_DIR, 'prompts', 'template_prime.xml'),
+         os.path.join(cwd, '.claude', 'templates', 'prime.xml')),
+        # file
         (os.path.join(SCRIPT_DIR, 'prompts', 'user', 'TEST_SCENARIOS.md'),
          os.path.join(cwd, 'ai_docs', 'EXAMPLE_SCENARIOS.md')),
+        # file - constructor for md file with xml context
+        (os.path.join(SCRIPT_DIR, 'scripts', 'template-processor.sh'),
+         os.path.join(cwd, '.claude', 'templates', 'template-processor.sh')),
+        # file - important don't EVER remove
+        (os.path.join(SCRIPT_DIR, '.env.dev'),
+         os.path.join(cwd, '.env')),
     )
-
-    click.echo("Creating the necessary directories...")
-    initial(cpyf=cpydocs)
-
-    cli_ctx.ensure_object(dict)
-    cli_ctx.obj['ctx'] = {
-        "flags": {"--log-lvl": log_lvl, "--agent": agent},
-        "args": {},
-        "commands": {
-            "browsr": {},
-            "opencode": {},
-            "gitingest": {},
-        }
-    }
+    cpydocs: tuple[tuple[str, str], ...] = cpydirs + cpyfiles
 
     if cli_ctx.invoked_subcommand is None:
+        click.echo("Creating the necessary directories...")
+        initial(cpyf=cpydocs)
         # starting up gitingest, for proj indexing and priming
-        click.echo("Making a git digest file...")
+        click.echo("\nMaking a git digest file...")
         cmd = cmd_builder(
             prog=GI_ALIAS,
             cmds=tuple("."),
@@ -152,42 +176,15 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
                 for line in proc.stderr:
                     # logging as debug for now
                     logger.debug(line.strip())
-        click.echo("Initialization complete!")
+        click.echo("\nInitialization complete!")
 
-        # chcmd: str = cmd_builder(
-        #    prog=OC_ALIAS if agent == 'opencode' else CLD_ALIAS,
-        #    cmds=None,
-        #    exclude_logs=True,
-        # )
-        # ctrl+x i -> \x18 i
-        # pattern = "enter"
-        # exit_pattern = "Created Agents.md"
-        # with pexpect.spawn(chcmd, encoding='utf-8') as child:
-        #    # child.logfile = sys.stdout
-        #    click.echo("spawned opencode...")
-        #    # giving it 30sec but this might be to short for big projects...we'll see
-        #    child.timeout = 30
-        #    child.expect(pattern)
-        #    child.sendcontrol("x")
-        #    child.send('i')
-        #    logger.info("pressed key combo for /init")
-        #    while True:
-        #        try:
-        #            l = child.readline()
-        #            if not l or exit_pattern.lower() == l.lower():
-        #                logger.info("Agents.md created...exiting process")
-        #                child.terminate()
-        #                break
-        #        except pexpect.exceptions.EOF as e:
-        #            logger.exception(
-        #                f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
-        #            child.terminate()
-        #            break
-        #        except pexpect.exceptions.TIMEOUT as e:
-        #            logger.exception(
-        #                f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
-        #            child.terminate()
-        #            break
+    cli_ctx.obj['ctx']['kwargs'] = {
+        "cpydocs": cpydocs,
+        "cpydirs": cpydirs,
+        "cpyfiles": cpyfiles,
+        # experimenting
+        "remove": (os.path.join(cwd, '.claude'), os.path.join(cwd, 'ai_docs'), os.path.join(cwd, 'specs'))
+    }
 
 
 @ctx.command(name="browsr", cls=rich_click.rich_command.RichCommand)
@@ -617,18 +614,21 @@ def gitingest(
     Positionals:\n
         path: path to digest
     """
-    cli_ctx.obj['gitingest'] = {
-        "--output": output,
-        "--max-size": max_size,
-        "--exclude-pattern": exclude_pattern,
-        "--include-pattern": include_pattern,
-        "--branch": branch,
-        "--include-gitignored": include_gitignored
+    cli_ctx.obj['ctx']['commands']['gitingest'] = {
+        "flags": {
+            "--output": output,
+            "--max-size": max_size,
+            "--exclude-pattern": exclude_pattern,
+            "--include-pattern": include_pattern,
+            "--branch": branch,
+            "--include-gitignored": include_gitignored,
+        },
+        "args": {'dir_path': dir_path},
     }
     cmd: str = cmd_builder(
         prog=GI_ALIAS,
         cmds=tuple(dir_path),
-        flags=cli_ctx.obj['gitingest'],
+        flags=cli_ctx.obj['ctx']['commands']['gitingest']['flags'],
         exclude_logs=True
     )
     with subprocess.Popen(cmd, stderr=PIPE, shell=True) as proc:
@@ -636,6 +636,41 @@ def gitingest(
             for line in proc.stderr:
                 # logging as debug for now
                 logger.debug(line.strip())
+
+
+@ctx.command(name="done", cls=rich_click.rich_command.RichCommand)
+@click.pass_context
+def done(cli_ctx: click.Context) -> None:
+    """
+    Teardown/Cleanup dirs/file that were created during ctxflow use.
+    Be MINDFUL of the data that you are deleting, ALWAYS double check any removals
+    """
+    cli_ctx.obj['ctx']['commands']['done'] = {
+        "flags": {},
+        "args": {},
+        "commands": {},
+    }
+    root_cli_ctx = cli_ctx.find_root()
+    ctx_teardown: Tuple[str, ...] = root_cli_ctx.obj['ctx']['kwargs']['remove']
+    for path in ctx_teardown:
+        file: str = os.path.basename(path)
+        try:
+            # just in case; absolutely don't want to remove these
+            if file == '.env' or file == '.ctxflow':
+                continue
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+                click.echo(f"{os.path.relpath(path)} was removed")
+            elif os.path.isfile(path):
+                os.remove(path)
+                click.echo(f"{os.path.relpath(path)} was removed")
+            else:
+                click.echo(
+                    f"what in the helly is this: {path} :remove it yourself!")
+        except Exception as e:
+            logger.exception(f"An error of {type(e)} occured. Details:")
+            click.echo(f"couldn't remove {file}. see logs for details")
+            continue
 
 
 if __name__ == "__main__":

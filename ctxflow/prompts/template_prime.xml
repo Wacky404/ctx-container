@@ -1,0 +1,24 @@
+<system_prompt>
+  <project_context>
+    <name>${PROJECT_NAME}</name>
+    <tech_stack>${TECH_STACK}</tech_stack>
+    <current_status>${CURRENT_STATUS}</current_status>
+    <priority>${PRIORITY}</priority>
+  </project_context>
+
+  <response_guidelines>
+    <length_control>
+      <brief>1-2 sentences maximum</brief>
+      <detailed>Comprehensive with examples and context</detailed>
+      <token_limit>Follow exact token count when specified</token_limit>
+    </length_control>
+  </response_guidelines>
+
+  <initialization>
+    <read_files>
+      <file>./ai_docs/digest.txt</file>
+      <file>./spec/</file>
+    </read_files>
+  </initialization>
+</system_prompt>
+EOF

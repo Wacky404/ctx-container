@@ -36,21 +36,39 @@ def initial(cpyf: tuple[tuple[str, str], ...]) -> None:
     create needed dirs in cwd
     """
     cwd: str = os.getcwd()
+    home: str = os.path.expanduser("~")
     dirs: list[str] = [
         os.path.join(cwd, "specs", "plan_v1"),
         os.path.join(cwd, "ai_docs", "agent"),
         os.path.join(cwd, "ai_docs", "protocol"),
+        os.path.join(cwd, ".claude", "commands"),
+        os.path.join(cwd, ".claude", "hooks"),
+        os.path.join(cwd, ".claude", "templates"),
+        os.path.join(cwd, ".claude", "utils"),
+        os.path.join(home, "ctxflow", "audio"),
     ]
     for dir in dirs:
+        if not os.path.exists(dir):
+            click.echo(f"{os.path.relpath(dir)} was created")
+
         os.makedirs(name=dir, exist_ok=True)
 
     for files in cpyf:
         try:
-            shutil.copyfile(src=str(files[0]), dst=files[1])
+            if os.path.isfile(files[0]):
+                shutil.copyfile(src=str(files[0]), dst=files[1])
+            elif os.path.isdir(files[0]):
+                shutil.copytree(
+                    src=str(files[0]), dst=files[1], dirs_exist_ok=True)
+            else:
+                raise FileNotFoundError
         except Exception as e:
             logger.exception(
                 f"An exception of type {type(e).__name__} occured. Details: {str(e)}")
             continue
+
+    # let user know .env file was created; I'm lazy
+    click.echo(".env was created")
 
 
 def cmd_builder(
