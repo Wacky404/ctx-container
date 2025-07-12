@@ -14,21 +14,31 @@ from datetime import datetime
 from typing import Any, Optional, List
 
 
+SUCCEED = 0
+FAIL = 1
+BLOCK = 2
+
+
 def get_completion_messages() -> List[str]:
     """ Return list of friendly completion messages. """
     return [
-        "Work complete!",
-        "All done!",
+        "The agents work is complete",
+        "Claude is done!",
         "Task finished!",
         "Job complete!",
-        "Ready for next task!"
+        "Your agent is ready for the next task",
+        "Agentic work completed",
+        "Work complete, might be a new record time",
+        "You might want to check your account balance, task is done",
+        "Your checkings definitely overdrafted on this one",
+        "Job is done, good luck debugging that"
     ]
 
 
 def get_tts_script_path() -> Optional[str]:
     """
     Determine which TTS script to use based on available API keys.
-    Priority order: ElevenLabs > OpenAI > pyttsx3
+    For now its just elevenlabs
     """
     script_dir: Path = Path(__file__).parent
     tts_dir: Path = script_dir / "utils" / "tts"
@@ -38,61 +48,49 @@ def get_tts_script_path() -> Optional[str]:
         if elevenlabs_script.exists():
             return str(elevenlabs_script)
 
-    if os.getenv('OPENAI_API_KEY'):
-        openai_script = tts_dir / "openai_tts.py"
-        if openai_script.exists():
-            return str(openai_script)
-
-    # Fall back to pyttsx3 (no API key required)
-    pyttsx3_script = tts_dir / "pyttsx3_tts.py"
-    if pyttsx3_script.exists():
-        return str(pyttsx3_script)
-
     return None
 
 
 def get_llm_completion_message() -> str:
     """
     Generate completion message using available LLM services.
-    Priority order: OpenAI > Anthropic > fallback to random message
-
-    Returns:
-        str: Generated or fallback completion message
+    Will only make api call like 15% of the time
     """
     script_dir: Path = Path(__file__).parent
     llm_dir: Path = script_dir / "utils" / "llm"
 
-    if os.getenv('OPENAI_API_KEY'):
-        oai_script: Path = llm_dir / "oai.py"
-        if oai_script.exists():
-            try:
-                result: subprocess.CompletedProcess[Any] = subprocess.run([
-                    "uv", "run", str(oai_script), "--completion"
-                ],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
+    if random.random() <= 0.15:
 
-    if os.getenv('ANTHROPIC_API_KEY'):
-        anth_script: Path = llm_dir / "anth.py"
-        if anth_script.exists():
-            try:
-                result = subprocess.run([
-                    "uv", "run", str(anth_script), "--completion"
-                ],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
+        if os.getenv('ANTHROPIC_API_KEY'):
+            anth_script: Path = llm_dir / "anth.py"
+            if anth_script.exists():
+                try:
+                    result: subprocess.CompletedProcess[Any] = subprocess.run([
+                        "uv", "run", str(anth_script), "--completion"
+                    ],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        return result.stdout.strip()
+                except (subprocess.TimeoutExpired, subprocess.SubprocessError):
+                    pass
+        elif os.getenv('OPENAI_API_KEY'):
+            oai_script: Path = llm_dir / "oai.py"
+            if oai_script.exists():
+                try:
+                    result = subprocess.run([
+                        "uv", "run", str(oai_script), "--completion"
+                    ],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        return result.stdout.strip()
+                except (subprocess.TimeoutExpired, subprocess.SubprocessError):
+                    pass
 
     # Fallback to random predefined message
     messages: list[str] = get_completion_messages()
@@ -113,8 +111,9 @@ def announce_completion() -> None:
         ],
             capture_output=True,
             timeout=10,
+            check=True,
         )
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, subprocess.CalledProcessError, FileNotFoundError):
         pass
     except Exception:
         pass
@@ -136,7 +135,7 @@ def main() -> None:
         os.makedirs(log_dir, exist_ok=True)
         log_path: str = os.path.join(log_dir, "stop.json")
 
-        # Read existing log data or initialize empty list
+        # read existing log data or initialize empty list
         if os.path.exists(log_path):
             with open(log_path, 'r') as f:
                 try:
@@ -151,11 +150,11 @@ def main() -> None:
         with open(log_path, 'w') as f:
             json.dump(log_data, f, indent=2)
 
-        # Handle --chat switch
+        # handle --chat switch
         if args.chat and 'transcript_path' in input_data:
             transcript_path: str = input_data['transcript_path']
             if os.path.exists(transcript_path):
-                # Read .jsonl file and convert to JSON array
+                # read .jsonl file and convert to JSON array
                 chat_data = []
                 try:
                     with open(transcript_path, 'r') as f:
@@ -167,7 +166,7 @@ def main() -> None:
                                 except json.JSONDecodeError:
                                     pass
 
-                    # Write to logs/chat.json
+                    # write to logs/chat.json
                     chat_file: str = os.path.join(log_dir, 'chat.json')
                     with open(chat_file, 'w') as f:
                         json.dump(chat_data, f, indent=2)
@@ -175,12 +174,12 @@ def main() -> None:
                     pass
 
         announce_completion()
-        sys.exit(0)
+        sys.exit(SUCCEED)
 
     except json.JSONDecodeError:
-        sys.exit(0)
+        sys.exit(FAIL)
     except Exception:
-        sys.exit(0)
+        sys.exit(FAIL)
 
 
 if __name__ == "__main__":

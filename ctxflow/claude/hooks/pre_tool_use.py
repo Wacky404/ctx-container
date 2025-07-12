@@ -10,6 +10,11 @@ from pathlib import Path
 from typing import Any
 
 
+SUCCEED = 0
+FAIL = 1
+BLOCK = 2
+
+
 def is_dangerous_rm_command(command: str) -> bool:
     """
     Comprehensive detection of dangerous rm commands.
@@ -89,14 +94,14 @@ def main() -> None:
             print(
                 "BLOCKED: Access to .env files containing sensitive data is prohibited", file=sys.stderr)
             print("Use .env.sample for template files instead", file=sys.stderr)
-            sys.exit(2)  # Exit code 2 blocks tool call and shows error to Claude
+            sys.exit(BLOCK)
 
         if tool_name == 'Bash':
             command = tool_input.get('command', '')
             if is_dangerous_rm_command(command):
                 print(
                     "BLOCKED: Dangerous rm command detected and prevented", file=sys.stderr)
-                sys.exit(2)
+                sys.exit(BLOCK)
 
         log_dir: Path = Path.cwd() / 'logs'
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -115,12 +120,12 @@ def main() -> None:
         with open(log_path, 'w') as f:
             json.dump(log_data, f, indent=2)
 
-        sys.exit(0)
+        sys.exit(SUCCEED)
 
     except json.JSONDecodeError:
-        sys.exit(0)
+        sys.exit(FAIL)
     except Exception:
-        sys.exit(0)
+        sys.exit(FAIL)
 
 
 if __name__ == '__main__':

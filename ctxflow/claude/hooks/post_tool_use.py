@@ -10,6 +10,11 @@ from pathlib import Path
 from typing import Any
 
 
+SUCCEED = 0
+FAIL = 1
+BLOCK = 2
+
+
 def main() -> None:
     try:
         input_data: dict[Any, ...] = json.load(sys.stdin)
@@ -32,12 +37,12 @@ def main() -> None:
         with open(log_path, 'w') as f:
             json.dump(log_data, f, indent=2)
 
-        sys.exit(0)
+        sys.exit(SUCCEED)
 
     except json.JSONDecodeError:
-        sys.exit(0)
+        sys.exit(FAIL)
     except Exception:
-        sys.exit(0)
+        sys.exit(FAIL)
 
 
 if __name__ == '__main__':

@@ -9,31 +9,27 @@ import os
 import sys
 import subprocess
 import random
+from typing import Optional, Any
 from pathlib import Path
+
+
+SUCCEED = 0
+FAIL = 1
+BLOCK = 2
 
 
 def get_tts_script_path() -> Optional[str]:
     """
     Determine which TTS script to use based on available API keys.
-    Priority order: ElevenLabs > OpenAI > pyttsx3
+    Just elevenlabs for now
     """
     script_dir: Path = Path(__file__).parent
     tts_dir: Path = script_dir / "utils" / "tts"
 
     if os.getenv('ELEVENLABS_API_KEY'):
-        elevenlabs_script = tts_dir / "elevenlabs_tts.py"
+        elevenlabs_script: Path = tts_dir / "elevenlabs_tts.py"
         if elevenlabs_script.exists():
             return str(elevenlabs_script)
-
-    if os.getenv('OPENAI_API_KEY'):
-        openai_script = tts_dir / "openai_tts.py"
-        if openai_script.exists():
-            return str(openai_script)
-
-    # Fall back to pyttsx3 (no API key required)
-    pyttsx3_script = tts_dir / "pyttsx3_tts.py"
-    if pyttsx3_script.exists():
-        return str(pyttsx3_script)
 
     return None
 
@@ -41,19 +37,16 @@ def get_tts_script_path() -> Optional[str]:
 def announce_notification() -> None:
     """ Announce that the agent needs user input. """
     try:
-        tts_script str | None = get_tts_script_path()
+        tts_script: str | None = get_tts_script_path()
         if not tts_script:
             return
 
         engineer_name: str = os.getenv('ENGINEER_NAME', '').strip()
-
-        # Create notification message with 30% chance to include name
         if engineer_name and random.random() < 0.40:
             notification_message: str = f"{engineer_name}, your agent needs your input"
         else:
             notification_message = "Your agent needs your input"
 
-        # Call the TTS script with the notification message
         subprocess.run([
             "uv", "run", tts_script, notification_message
         ],
@@ -74,7 +67,7 @@ def main() -> None:
                             help='Enable TTS notifications')
         args: argparse.Namespace = parser.parse_args()
 
-        input_data: dict[Any] = json.loads(sys.stdin.read())
+        input_data: dict[Any, ...] = json.load(sys.stdin)
 
         log_dir: str = os.path.join(os.getcwd(), 'logs')
         os.makedirs(log_dir, exist_ok=True)
@@ -94,15 +87,16 @@ def main() -> None:
         with open(log_file, 'w') as f:
             json.dump(log_data, f, indent=2)
 
-        # Announce notification via TTS only if --notify flag is set
+        # announce notification via TTS only if --notify flag is set
         if args.notify:
             announce_notification()
-        sys.exit(0)
+
+        sys.exit(SUCCEED)
 
     except json.JSONDecodeError:
-        sys.exit(0)
+        sys.exit(FAIL)
     except Exception:
-        sys.exit(0)
+        sys.exit(FAIL)
 
 
 if __name__ == '__main__':

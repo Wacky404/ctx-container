@@ -8,6 +8,7 @@
 
 import os
 import sys
+import anthropic
 from typing import Any, Optional
 
 
@@ -18,10 +19,7 @@ def prompt_llm(prompt_text: str) -> Optional[str]:
         return None
 
     try:
-        import anthropic
-
         client = anthropic.Anthropic(api_key=api_key)
-
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",
             max_tokens=100,
@@ -30,7 +28,8 @@ def prompt_llm(prompt_text: str) -> Optional[str]:
         )
         return message.content[0].text.strip()
 
-    except Exception:
+    except Exception as e:
+        print(f"Error with the api call for anthropic: {e}")
         return None
 
 
@@ -40,17 +39,17 @@ def generate_completion_message() -> Optional[str]:
     if engineer_name:
         name_instruction: str = f"Sometimes (about 30% of the time) include the engineer's name '{engineer_name}' in a natural way."
         examples: str = f"""Examples of the style:
-- Standard: "Work complete!", "All done!", "Task finished!", "Ready for your next move!"
-- Personalized: "{engineer_name}, all set!", "Ready for you, {engineer_name}!", "Complete, {engineer_name}!", "{engineer_name}, we're done!" """
+- Standard: "Agent work complete!", "Job is all done!", "Agent Task finished!", "Your agent is ready for your next move!"
+- Personalized: "{engineer_name}, your agent is all set!", "Your agent is ready for you, {engineer_name}!", "Your agent work is complete, {engineer_name}!", "{engineer_name}, your agent is done!" """
     else:
         name_instruction = ""
-        examples = """Examples of the style: "Work complete!", "All done!", "Task finished!", "Ready for your next move!" """
+        examples = """Examples of the style: "Agent work complete!", "Job is all done!", "Agent Task finished!", "Your agent is ready for your next move!" """
 
     prompt = f"""Generate a short, friendly completion message for when an AI coding assistant finishes a task.
 
 Requirements:
-- Keep it under 10 words
-- Make it positive and future focused
+- Keep it under 15 words
+- Make it positive or humorous or jestful and future focused
 - Use natural, conversational language
 - Focus on completion/readiness
 - Do NOT include quotes, formatting, or explanations
@@ -61,7 +60,7 @@ Requirements:
 
 Generate ONE completion message:"""
 
-    response = prompt_llm(prompt)
+    response: None | str = prompt_llm(prompt)
     if response:
         response = response.strip().strip('"').strip("'").strip()
         # take first line if multiple lines
@@ -77,16 +76,18 @@ def main() -> None:
             if message:
                 print(message)
             else:
-                print("Error generating completion message")
+                print("The agents work is complete")
         else:
             prompt_text = " ".join(sys.argv[1:])
             response = prompt_llm(prompt_text)
             if response:
                 print(response)
             else:
-                print("Error calling Anthropic API")
+                print("The agents work is complete")
     else:
-        print("Usage: ./anth.py 'your prompt here' or ./anth.py --completion")
+        print("Agentic work completed")
+        print(
+            "Usage: ./anth.py 'your prompt here' or ./anth.py --completion", file=sys.stderr)
 
 
 if __name__ == "__main__":

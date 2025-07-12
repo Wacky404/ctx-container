@@ -7,16 +7,22 @@ import argparse
 import json
 import os
 import sys
+import fcntl
 import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, TextIO
+
+
+SUCCEED = 0
+FAIL = 1
+BLOCK = 2
 
 
 def get_tts_script_path() -> Optional[str]:
     """
     Determine which TTS script to use based on available API keys.
-    Priority order: ElevenLabs > OpenAI > pyttsx3
+    For now its just elevenlabs
     """
     script_dir: Path = Path(__file__).parent
     tts_dir: Path = script_dir / "utils" / "tts"
@@ -26,37 +32,45 @@ def get_tts_script_path() -> Optional[str]:
         if elevenlabs_script.exists():
             return str(elevenlabs_script)
 
-    if os.getenv('OPENAI_API_KEY'):
-        openai_script = tts_dir / "openai_tts.py"
-        if openai_script.exists():
-            return str(openai_script)
-
-    # Fall back to pyttsx3 (no API key required)
-    pyttsx3_script = tts_dir / "pyttsx3_tts.py"
-    if pyttsx3_script.exists():
-        return str(pyttsx3_script)
-
     return None
 
 
 def announce_subagent_completion() -> None:
-    """ Announce subagent completion using the best available TTS service. """
+    """
+    Announce subagent completion available TTS service.
+    This process will only trigger once, if multiple events
+    are triggered sequentially or within a already running
+    process.
+    """
+    lock_path: str = os.path.join("tmp", "subagent_stop_hook.lock")
     try:
+        lock_file: TextIO = open(lock_path, 'w')
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
         tts_script: str | None = get_tts_script_path()
         if not tts_script:
             return
 
-        completion_message = "Subagent Task Complete"
-        subprocess.run([
+        completion_message: str = "Subagent Task Complete"
+        result: subprocess.CompletedProcess[Any] = subprocess.run([
             "uv", "run", tts_script, completion_message
         ],
             capture_output=True,
-            timeout=10
+            timeout=10,
+            check=True
         )
+        if result.returncode == SUCCEED:
+            print("TTS completed successfully")
+        else:
+            print(f"TTS failed: {result.stderr}")
 
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        lock_file.close()
+        os.remove(lock_path)
+
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, subprocess.CalledProcessError, FileNotFoundError):
         pass
-    except Exception:
+    except Exception as e:
+        print(f"Unknown error occured, details: {e}")
         pass
 
 
@@ -90,11 +104,11 @@ def main() -> None:
         with open(log_path, 'w') as f:
             json.dump(log_data, f, indent=2)
 
-        # Handle --chat switch (same as stop.py)
+        # handle --chat switch (same as stop.py)
         if args.chat and 'transcript_path' in input_data:
             transcript_path = input_data['transcript_path']
             if os.path.exists(transcript_path):
-                # Read .jsonl file and convert to JSON array
+                # read .jsonl file and convert to JSON array
                 chat_data = []
                 try:
                     with open(transcript_path, 'r') as f:
@@ -106,7 +120,7 @@ def main() -> None:
                                 except json.JSONDecodeError:
                                     pass
 
-                    # Write to logs/chat.json
+                    # write to logs/chat.json
                     chat_file = os.path.join(log_dir, 'chat.json')
                     with open(chat_file, 'w') as f:
                         json.dump(chat_data, f, indent=2)
@@ -114,12 +128,12 @@ def main() -> None:
                     pass
 
         announce_subagent_completion()
-        sys.exit(0)
+        sys.exit(SUCCEED)
 
     except json.JSONDecodeError:
-        sys.exit(0)
+        sys.exit(FAIL)
     except Exception:
-        sys.exit(0)
+        sys.exit(FAIL)
 
 
 if __name__ == "__main__":

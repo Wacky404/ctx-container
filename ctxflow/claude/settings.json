@@ -29,7 +29,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "uv run .claude/hooks/notification.py"
+                        "command": "uv run .claude/hooks/notification.py --notify"
                     }
                 ]
             }
@@ -40,7 +40,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "uv run .claude/hooks/stop.py"
+                        "command": "uv run .claude/hooks/stop.py --chat"
                     }
                 ]
             }
