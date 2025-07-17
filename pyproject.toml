@@ -37,6 +37,8 @@ dependencies = [
   "gitingest>=0.1.5",
   "pexpect>=4.9.0",
   "pip>=25.0.1",
+  "psutil>=7.0.0",
+  "inquirerpy>=0.3.4",
 ]
 description = "ctxflow to keep you developing with ease"
 dynamic = ["version"]

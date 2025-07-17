@@ -42,36 +42,37 @@ def announce_subagent_completion() -> None:
     are triggered sequentially or within a already running
     process.
     """
-    lock_path: str = os.path.join("tmp", "subagent_stop_hook.lock")
+    lock_path: str = os.path.join("/tmp", "subagent_stop_hook.lock")
     try:
-        lock_file: TextIO = open(lock_path, 'w')
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        with open(lock_path, 'x') as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-        tts_script: str | None = get_tts_script_path()
-        if not tts_script:
-            return
+            tts_script: str | None = get_tts_script_path()
+            if not tts_script:
+                return
 
-        completion_message: str = "Subagent Task Complete"
-        result: subprocess.CompletedProcess[Any] = subprocess.run([
-            "uv", "run", tts_script, completion_message
-        ],
-            capture_output=True,
-            timeout=10,
-            check=True
-        )
-        if result.returncode == SUCCEED:
-            print("TTS completed successfully")
-        else:
-            print(f"TTS failed: {result.stderr}")
+            completion_message: str = "Subagent Task Complete"
+            result: subprocess.CompletedProcess[Any] = subprocess.run([
+                "uv", "run", tts_script, completion_message
+            ],
+                capture_output=True,
+                timeout=10,
+                check=True
+            )
+            if result.returncode == SUCCEED:
+                print("TTS completed successfully")
+            else:
+                print(f"TTS failed: {result.stderr}")
 
-        lock_file.close()
         os.remove(lock_path)
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, subprocess.CalledProcessError, FileNotFoundError):
-        pass
+        if os.path.exists(path=lock_path):
+            os.remove(lock_path)
     except Exception as e:
+        if os.path.exists(path=lock_path):
+            os.remove(lock_path)
         print(f"Unknown error occured, details: {e}")
-        pass
 
 
 def main() -> None:

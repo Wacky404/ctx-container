@@ -1,3 +1,4 @@
+# TODO: Make sure the logs/ directory in cwd doesn't get program logs, put them in .ctxflow
 """
 LOGGER SETUP FILE FOR CTX-CONTAINER
 """

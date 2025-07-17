@@ -72,11 +72,18 @@ def main() -> None:
         else:
             print(f"Generating new audio for: '{text}'")
             try:
+                # testing, voice was fast at 1.0
+                # 7 was a little tism; too slow
                 audio = elevenlabs.text_to_speech.convert(
                     text=text,
                     voice_id=VOICE_ID,
                     model_id=MODEL_ID,
                     output_format=OUTPUT_FORMAT,
+                    voice_settings={
+                        "stability": 0.8,
+                        "style": 0,
+                        "speed": 0.8,
+                    }
                 )
 
                 new_audio_path: str = os.path.join(

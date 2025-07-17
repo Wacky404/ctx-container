@@ -1,5 +1,5 @@
 """
-Code Browsr Utility Functions
+CTXFlow Utility Functions
 """
 
 import datetime
@@ -32,42 +32,38 @@ from ctxflow.logger import logger
 
 
 def initial(cpyf: tuple[tuple[str, str], ...]) -> None:
-    """
-    create needed dirs in cwd
-    """
+    """ Create needed dirs and files in cwd. """
     cwd: str = os.getcwd()
     home: str = os.path.expanduser("~")
     dirs: list[str] = [
         os.path.join(cwd, "specs", "plan_v1"),
         os.path.join(cwd, "ai_docs", "agent"),
         os.path.join(cwd, "ai_docs", "protocol"),
-        os.path.join(cwd, ".claude", "commands"),
-        os.path.join(cwd, ".claude", "hooks"),
         os.path.join(cwd, ".claude", "templates"),
-        os.path.join(home, "ctxflow", "audio"),
+        os.path.join(cwd, "trees"),
+        os.path.join(home, ".ctxflow", "audio"),
     ]
     for dir in dirs:
         if not os.path.exists(dir):
             click.echo(f"{os.path.relpath(dir)} was created")
+            os.makedirs(name=dir, exist_ok=True)
 
-        os.makedirs(name=dir, exist_ok=True)
-
-    for files in cpyf:
+    for paths in cpyf:
         try:
-            if os.path.isfile(files[0]):
-                shutil.copyfile(src=str(files[0]), dst=files[1])
-            elif os.path.isdir(files[0]):
+            if os.path.isfile(paths[0]) and not os.path.exists(paths[1]):
+                click.echo(f"{os.path.relpath(paths[1])} was created")
+                shutil.copyfile(src=str(paths[0]), dst=paths[1])
+            elif os.path.isdir(paths[0]) and not os.path.exists(paths[1]):
+                click.echo(f"{os.path.relpath(paths[1])} was created")
                 shutil.copytree(
-                    src=str(files[0]), dst=files[1], dirs_exist_ok=True)
+                    src=str(paths[0]), dst=paths[1], dirs_exist_ok=True)
             else:
-                raise FileNotFoundError
+                if os.path.basename(paths[1]) != ".ctxflow" and os.path.basename(paths[1]) != ".claude":
+                    click.echo(f"{os.path.relpath(paths[1])} already exists")
         except Exception as e:
             logger.exception(
                 f"An exception of type {type(e).__name__} occured. Details: {str(e)}")
             continue
-
-    # let user know .env file was created; I'm lazy
-    click.echo(".env was created")
 
 
 def cmd_builder(
@@ -88,6 +84,9 @@ def cmd_builder(
             if val:
                 if isinstance(val, bool):
                     x = x + f" {flag}"
+                elif isinstance(val, list):
+                    for v in val:
+                        x = x + f" {flag} {v}"
                 else:
                     x = x + f" {flag} {val}"
 
