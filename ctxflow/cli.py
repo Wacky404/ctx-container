@@ -279,9 +279,9 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
     )
     cpydocs: tuple[tuple[str, str], ...] = cpydirs + cpyfiles
 
-    confirm: bool = inquirer.confirm(message="Start ctxflow?").execute()
-    if confirm:
-        if cli_ctx.invoked_subcommand is None:
+    if cli_ctx.invoked_subcommand is None:
+        confirm: bool = inquirer.confirm(message="Start ctxflow?").execute()
+        if confirm:
             click.echo("Creating the necessary directories/files...")
             initial(cpyf=cpydocs)
             # starting up gitingest, for proj indexing and priming
@@ -340,13 +340,13 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
 
             click.echo("\nInitialization complete!")
 
-        cli_ctx.obj['ctx']['kwargs'] = {
-            "cpydocs": cpydocs,
-            "cpydirs": cpydirs,
-            "cpyfiles": cpyfiles,
-            # experimenting
-            "remove": (os.path.join(cwd, '.claude'), os.path.join(cwd, 'ai_docs'), os.path.join(cwd, 'specs'))
-        }
+    cli_ctx.obj['ctx']['kwargs'] = {
+        "cpydocs": cpydocs,
+        "cpydirs": cpydirs,
+        "cpyfiles": cpyfiles,
+        # experimenting
+        "remove": (os.path.join(cwd, '.claude'), os.path.join(cwd, 'ai_docs'), os.path.join(cwd, 'specs'))
+    }
 
 
 @ctx.command(name="init", cls=rich_click.rich_command.RichCommand)
