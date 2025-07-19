@@ -82,7 +82,7 @@ def main() -> None:
                     voice_settings={
                         "stability": 0.8,
                         "style": 0,
-                        "speed": 0.8,
+                        "speed": 0.9,
                     }
                 )
 

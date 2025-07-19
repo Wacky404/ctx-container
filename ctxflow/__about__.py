@@ -4,5 +4,5 @@
 
 __author__ = "Wayne Cole"
 __email__ = "hi@waynecole.info"
-__application__ = "browsr"
-__version__ = "0.0.2"
+__application__ = "ctxflow"
+__version__ = "0.5.0"

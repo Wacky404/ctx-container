@@ -1,5 +1,3 @@
-# TODO: After that I want to do init configuration using prompter; forgot library/module
-# TODO: come up with a better implementation for creating/deleting dirs/files
 """
 ctx command line interface
 """
@@ -56,6 +54,84 @@ SUCCEED = 0
 FAIL = 1
 
 
+def get_ctxflow_logo(pad: str = "", fallback: bool = False, max_width: Optional[int] = None) -> str:
+    """
+    Generate CTXFLOW ASCII art logo string
+
+    Args:
+        pad: String to prepend to each line (e.g., "  " for indentation)
+        fallback: Force ASCII-only characters
+        max_width: Force fallback if terminal is narrower than this
+
+    Returns:
+        String containing the logo
+    """
+
+    LOGO_UNICODE = [
+        [" ██████╗████████╗██╗  ██╗", "███████╗██╗      ██████╗ ██╗    ██╗"],
+        ["██╔════╝╚══██╔══╝╚██╗██╔╝", "██╔════╝██║     ██╔═══██╗██║    ██║"],
+        ["██║        ██║    ╚███╔╝ ", "█████╗  ██║     ██║   ██║██║ █╗ ██║"],
+        ["██║        ██║    ██╔██╗ ", "██╔══╝  ██║     ██║   ██║██║███╗██║"],
+        ["╚██████╗   ██║   ██╔╝ ██╗", "██║     ███████╗╚██████╔╝╚███╔███╔╝"],
+        [" ╚═════╝   ╚═╝   ╚═╝  ╚═╝", "╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝"],
+    ]
+
+    LOGO_ASCII = [
+        [" ######  ########  #    #", "#######  #        ######  #    # "],
+        ["#       #  ##  # # #  # ", "#        #       #    #   #    # "],
+        ["#          ##     ###   ", "#####    #       #    #   # ## # "],
+        ["#          ##    # ##   ", "#        #       #    #   ######"],
+        ["######     ##   #    #  ", "#        ####### ######  #    # "],
+        [" ######    ##   #    #  ", "#        ####### ######  #    # "],
+    ]
+
+    term_width = shutil.get_terminal_size().columns
+    use_fallback = fallback
+    if max_width and term_width < max_width:
+        use_fallback = True
+
+    if not use_fallback:
+        encoding = sys.stdout.encoding
+        term = os.environ.get('TERM', '')
+
+        unicode_supported = (
+            encoding and 'utf' in encoding.lower()
+        ) or any(x in term for x in ['xterm', 'screen', 'tmux'])
+
+        if not unicode_supported:
+            use_fallback = True
+
+    if term_width < 40:
+        return f"{pad}CTXFLOW - Context Flow Management"
+
+    logo_data = LOGO_ASCII if use_fallback else LOGO_UNICODE
+    supports_color = (
+        hasattr(sys.stdout, 'isatty') and
+        sys.stdout.isatty() and
+        os.environ.get('TERM') != 'dumb'
+    )
+
+    result = []
+    for row in logo_data:
+        if pad:
+            result.append(pad)
+
+        if supports_color:
+            # First part in gray, second part normal
+            # result.append("\x1b[90m")  # Gray
+            result.append("\x1b[32m")  # Green
+            result.append(row[0])
+            result.append("\x1b[0m")   # Reset
+            result.append(row[1])
+        else:
+            # No color - just concatenate
+            result.append(row[0] + row[1])
+
+        result.append("\n")
+
+    return "".join(result).rstrip()
+
+
 def command_with_aliases(
         group: click.Group,
         *aliases: str,
@@ -70,7 +146,7 @@ def command_with_aliases(
     return decorator
 
 
-@click.group(invoke_without_command=True)
+@click.group(invoke_without_command=True, help=f"{get_ctxflow_logo(pad='  ')}\n\nContext Flow Management Tool")
 @click.version_option(version=__version__, prog_name=__application__)
 @click.pass_context
 @click.option(
@@ -203,89 +279,127 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
     )
     cpydocs: tuple[tuple[str, str], ...] = cpydirs + cpyfiles
 
-    if cli_ctx.invoked_subcommand is None:
-        click.echo("Creating the necessary directories/files...")
-        initial(cpyf=cpydocs)
-        # starting up gitingest, for proj indexing and priming
-        click.echo("\nMaking a git digest file...")
-        cmd = cmd_builder(
-            prog=GI_ALIAS,
-            cmds=tuple(["."]),
-            flags={
-                "--output": os.path.join(cwd, 'ai_docs', 'digest.txt'),
-                "-e": ["logs/", "*.log*", "*.env*", "*.claude*", "ai_docs/", "specs/"],
-            },
-            exclude_logs=True,
-        )
-        with subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, text=True) as proc:
-            stdout, stderr = proc.communicate()
-            if stderr:
-                msg = stderr.strip().split('\n')
-                logger.debug("Gitingest: " + " ".join(msg))
+    confirm: bool = inquirer.confirm(message="Start ctxflow?").execute()
+    if confirm:
+        if cli_ctx.invoked_subcommand is None:
+            click.echo("Creating the necessary directories/files...")
+            initial(cpyf=cpydocs)
+            # starting up gitingest, for proj indexing and priming
+            click.echo("\nMaking a git digest file...")
+            cmd = cmd_builder(
+                prog=GI_ALIAS,
+                cmds=tuple(["."]),
+                flags={
+                    "--output": os.path.join(cwd, 'ai_docs', 'digest.txt'),
+                    "-e": ["logs/", "*.log*", "*.env*", "*.claude*", "ai_docs/", "specs/"],
+                },
+                exclude_logs=True,
+            )
+            with subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, text=True) as proc:
+                stdout, stderr = proc.communicate()
+                if stderr:
+                    msg = stderr.strip().split('\n')
+                    logger.debug("Gitingest: " + " ".join(msg))
 
-            if stdout:
-                # don't care about index: 1 (Summary:) or 2 (Directory:)
-                # fragil as its dependent on output of another cli prog
-                try:
-                    output = [
-                        x for x in stdout.split('\n') if x != ""]
-                    output = output[0:1] + output[3:]
-                    if len(output) != 3:
-                        raise IndexError
-                    output_structured = {
-                        "output_path": "", "files_analyzed": "", "token_size": ""}
-                    for idx, line in enumerate(output):
-                        # index: 0 key: output val: path,
-                        # index: 1 key: files analyzed val: int,
-                        # index: 2 key: token size val: float K
-                        key_val = line.split(":")
-                        if len(key_val) != 2:
+                if stdout:
+                    # don't care about index: 1 (Summary:) or 2 (Directory:)
+                    # fragil as its dependent on output of another cli prog
+                    try:
+                        output = [
+                            x for x in stdout.split('\n') if x != ""]
+                        output = output[0:1] + output[3:]
+                        if len(output) != 3:
                             raise IndexError
-                        if idx == 0:
-                            output_structured["output_path"] = str(
-                                key_val[1]).strip()
-                        elif idx == 1:
-                            output_structured["files_analyzed"] = str(
-                                key_val[1]).strip()
-                        elif idx == 2:
-                            output_structured["token_size"] = str(
-                                key_val[1]).strip()
-                    for key, val in output_structured.items():
-                        # don't care for output_path right now; redundent
-                        if key != "output_path":
-                            click.echo(f"{key}: {val}")
-                except IndexError:
-                    pass
-                except Exception as e:
-                    logger.exception(
-                        "stdout output might have changed, details: {e}")
+                        output_structured = {
+                            "output_path": "", "files_analyzed": "", "token_size": ""}
+                        for idx, line in enumerate(output):
+                            # index: 0 key: output val: path,
+                            # index: 1 key: files analyzed val: int,
+                            # index: 2 key: token size val: float K
+                            key_val = line.split(":")
+                            if len(key_val) != 2:
+                                raise IndexError
+                            if idx == 0:
+                                output_structured["output_path"] = str(
+                                    key_val[1]).strip()
+                            elif idx == 1:
+                                output_structured["files_analyzed"] = str(
+                                    key_val[1]).strip()
+                            elif idx == 2:
+                                output_structured["token_size"] = str(
+                                    key_val[1]).strip()
+                        for key, val in output_structured.items():
+                            # don't care for output_path right now; redundent
+                            if key != "output_path":
+                                click.echo(f"{key}: {val}")
+                    except IndexError:
+                        pass
+                    except Exception as e:
+                        logger.exception(
+                            "stdout output might have changed, details: {e}")
 
-        click.echo("\nInitialization complete!")
+            click.echo("\nInitialization complete!")
 
-    cli_ctx.obj['ctx']['kwargs'] = {
-        "cpydocs": cpydocs,
-        "cpydirs": cpydirs,
-        "cpyfiles": cpyfiles,
-        # experimenting
-        "remove": (os.path.join(cwd, '.claude'), os.path.join(cwd, 'ai_docs'), os.path.join(cwd, 'specs'))
-    }
+        cli_ctx.obj['ctx']['kwargs'] = {
+            "cpydocs": cpydocs,
+            "cpydirs": cpydirs,
+            "cpyfiles": cpyfiles,
+            # experimenting
+            "remove": (os.path.join(cwd, '.claude'), os.path.join(cwd, 'ai_docs'), os.path.join(cwd, 'specs'))
+        }
 
 
 @ctx.command(name="init", cls=rich_click.rich_command.RichCommand)
 @click.pass_context
 def init(cli_ctx: click.Context) -> None:
     """
-    📄 initialize with .env variables
+    📄 initialize prime command with .env variables
     """
     questions: List[dict[str, str]] = [
-        {"type": "input", "message": "What's your name:", "name": "name"},
+        {"type": "input", "message": "Project Name:", "name": "PROJECT_NAME"},
+        {"type": "input", "message": "Tech Stack:", "name": "TECH_STACK"},
+        {"type": "input", "message": "Current Status:", "name": "CURRENT_STATUS"},
+        {"type": "input", "message": "Priority:", "name": "PRIORITY"},
         {"type": "confirm", "message": "Confirm?", "name": "confirm"},
     ]
-    result = prompt(questions)
-    name = result["name"]
-    confirm = result["confirm"]
-    click.echo(name)
-    click.echo(confirm)
+    while True:
+        result: dict[str, Any] = prompt(questions)
+        if result["confirm"] == True:
+            for key, val in result.items():
+                click.echo(f'{key}="{val}"')
+            break
+
+    cwd: str = os.getcwd()
+    for root, dirs, files in os.walk(cwd):
+        for name in files:
+            if name == '.env':
+                path_env: str = os.path.join(root, name)
+                click.echo("Updating the .env file...")
+                if os.path.getsize(path_env) == 0:
+                    with open(path_env, 'w') as fd:
+                        for key, val in result.items():
+                            if key != 'confirm':
+                                fd.write(f'{key}="{val}"\n')
+                else:
+                    with open(path_env, 'a') as fd:
+                        for key, val in result.items():
+                            if key != 'confirm':
+                                fd.write(f'{key}="{val}"\n')
+
+                click.echo(f"{os.path.relpath(path_env)} updated")
+                cli_ctx.exit(SUCCEED)
+
+    path_env = os.path.join(cwd, ".env")
+    click.echo(
+        f".env file not found, creating one at {os.path.relpath(path_env)}")
+    open(path_env, 'x')
+    click.echo("Updating the .env file...")
+    with open(path_env, 'w') as fd:
+        for key, val in result.items():
+            if key != 'confirm':
+                fd.write(f'{key}="{val}"\n')
+    click.echo(f"{os.path.relpath(path_env)} updated")
+    cli_ctx.exit(SUCCEED)
 
 
 @ctx.command(name="done", cls=rich_click.rich_command.RichCommand)
