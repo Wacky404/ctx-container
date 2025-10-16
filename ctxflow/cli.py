@@ -258,18 +258,12 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
          os.path.join(cwd, '.claude', 'commands'))
     )
     cpyfiles: tuple[tuple[str, str], ...] = (
-        # file - thinking about throwing this out...
-        (os.path.join(SCRIPT_DIR, 'prompts', 'agentic', 'CtxPrime.md'),
-         os.path.join(cwd, 'ai_docs', 'agent', 'AgentPrime.md')),
-        # file - thinking about throwing this out...
-        (os.path.join(SCRIPT_DIR, 'prompts', 'protocol', 'SharedProtocol.md'),
-         os.path.join(cwd, 'ai_docs', 'protocol', 'SharedProtocol.md')),
-        # file - thinking about throwing this out...
-        (os.path.join(SCRIPT_DIR, 'prompts', 'user', 'TEST_SCENARIOS.md'),
-         os.path.join(cwd, 'ai_docs', 'EXAMPLE_SCENARIOS.md')),
         # file
         (os.path.join(SCRIPT_DIR, 'prompts', 'template_prime.xml'),
          os.path.join(cwd, '.claude', 'templates', 'prime.xml')),
+        # file
+        (os.path.join(SCRIPT_DIR, 'prompts', 'user', 'web_builder.xml'),
+         os.path.join(cwd, '.claude', 'templates', 'web-builder.xml')),
         # file - constructor for md file with xml context
         (os.path.join(SCRIPT_DIR, 'scripts', 'template-processor.sh'),
          os.path.join(cwd, '.claude', 'templates', 'template-processor.sh')),
