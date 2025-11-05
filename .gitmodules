@@ -1,0 +1,3 @@
+[submodule "ctxflow/prompts/Prompts"]
+	path = ctxflow/prompts/Prompts
+	url = git@github.com:BTY-Technology/Prompts
