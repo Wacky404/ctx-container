@@ -267,6 +267,15 @@ def ctx(cli_ctx: click.Context, log_lvl: str, agent: str, new_digest: bool) -> N
         # file - constructor for md file with xml context
         (os.path.join(SCRIPT_DIR, 'scripts', 'template-processor.sh'),
          os.path.join(cwd, '.claude', 'templates', 'template-processor.sh')),
+        # file
+        (os.path.join(SCRIPT_DIR, 'prompts', 'Prompts', 'BTY_SEO_BRANDING_PROMPT.md'),
+         os.path.join(cwd, '.claude', 'commands', 'bty-seo.md')),
+        # file
+        (os.path.join(SCRIPT_DIR, 'prompts', 'Prompts', 'UPDATE_TEMPLATE_JSON_PROMPT.md'),
+         os.path.join(cwd, '.claude', 'commands', 'update-template.md')),
+        # file
+        (os.path.join(SCRIPT_DIR, 'prompts', 'Prompts', 'WATERMARK_PROMPT.md'),
+         os.path.join(cwd, '.claude', 'commands', 'watermark.md')),
         # file - important don't EVER remove
         (os.path.join(SCRIPT_DIR, '.env.dev'),
          os.path.join(cwd, '.env')),

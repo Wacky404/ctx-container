@@ -37,8 +37,6 @@ def initial(cpyf: tuple[tuple[str, str], ...]) -> None:
     home: str = os.path.expanduser("~")
     dirs: list[str] = [
         os.path.join(cwd, "specs", "plan_v1"),
-        os.path.join(cwd, "ai_docs", "agent"),
-        os.path.join(cwd, "ai_docs", "protocol"),
         os.path.join(cwd, ".claude", "templates"),
         os.path.join(cwd, "trees"),
         os.path.join(home, ".ctxflow", "audio"),

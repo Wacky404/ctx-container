@@ -3,6 +3,6 @@
 """
 
 __author__ = "Wayne Cole"
-__email__ = "hi@waynecole.info"
+__email__ = "wcole@btytechnology.com"
 __application__ = "ctxflow"
-__version__ = "1.0"
+__version__ = "1.5"
