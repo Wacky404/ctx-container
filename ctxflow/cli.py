@@ -2,7 +2,6 @@
 ctx command line interface
 """
 from pprint import pprint
-from ctxflow.browsr import Browsr
 from ctxflow.base import (
     TextualAppContext,
 )
@@ -22,24 +21,9 @@ from ctxflow.runner import TerminalAgentRunner
 from ctxflow.logger import setup_logging, logger
 from ctxflow.utils import cmd_builder, initial
 
-
-rich_click.rich_click.MAX_WIDTH = 100
-rich_click.rich_click.STYLE_OPTION = "bold green"
-rich_click.rich_click.STYLE_SWITCH = "bold blue"
-rich_click.rich_click.STYLE_METAVAR = "bold red"
-rich_click.rich_click.STYLE_HELPTEXT_FIRST_LINE = "bold blue"
-rich_click.rich_click.STYLE_HELPTEXT = ""
-rich_click.rich_click.STYLE_HEADER_TEXT = "bold green"
-rich_click.rich_click.STYLE_OPTION_DEFAULT = "bold yellow"
-rich_click.rich_click.STYLE_OPTION_HELP = ""
-rich_click.rich_click.STYLE_ERRORS_SUGGESTION = "bold red"
-rich_click.rich_click.STYLE_OPTIONS_TABLE_BOX = "SIMPLE_HEAVY"
-rich_click.rich_click.STYLE_COMMANDS_TABLE_BOX = "SIMPLE_HEAVY"
-
 # need to be made into enviroment vars with fallbacks
 OC_ALIAS: str = "opencode"
 CLD_ALIAS: str = "claude"
-BS_ALIAS: str = "browsr"
 GI_ALIAS: str = "gitingest"
 # end
 
@@ -77,12 +61,12 @@ def get_ctxflow_logo(pad: str = "", fallback: bool = False, max_width: Optional[
     ]
 
     LOGO_ASCII = [
-        [" ######  ########  #    #", "#######  #        ######  #    # "],
+        ["######  ########  #    #", "#######  #       ######  #      # "],
         ["#       #  ##  # # #  # ", "#        #       #    #   #    # "],
         ["#          ##     ###   ", "#####    #       #    #   # ## # "],
         ["#          ##    # ##   ", "#        #       #    #   ######"],
         ["######     ##   #    #  ", "#        ####### ######  #    # "],
-        [" ######    ##   #    #  ", "#        ####### ######  #    # "],
+        [" ######    ##   #    #  ", "#        ####### ######  #     # "],
     ]
 
     term_width = shutil.get_terminal_size().columns
@@ -443,246 +427,6 @@ def done(cli_ctx: click.Context) -> None:
                 continue
 
     cli_ctx.exit(SUCCEED)
-
-
-@ctx.command(name="browsr", cls=rich_click.rich_command.RichCommand)
-@click.argument("path", default=".", required=False, type=click.Path(exists=True),  metavar="PATH_BROWSR")
-@click.option("-f", "--file", multiple=True, type=click.Path(exists=True), help="Pass through individual file paths you want as context")
-@click.option("-d", "--directory", multiple=True, type=click.Path(exists=True), help="Pass through individual directory paths you want as context")
-@click.option(
-    "-l",
-    "--max-lines",
-    default=1000,
-    show_default=True,
-    type=int,
-    help="Maximum number of lines to display in the code browser",
-    envvar="BROWSR_MAX_LINES",
-    show_envvar=True,
-
-
-)
-@click.option(
-    "-m",
-    "--max-file-size",
-    default=20,
-    show_default=True,
-    type=int,
-    help="Maximum file size in MB for the application to open",
-    envvar="BROWSR_MAX_FILE_SIZE",
-    show_envvar=True,
-)
-@click.version_option(version=__version__, prog_name=__application__)
-@click.option(
-    "--debug/--no-debug",
-    default=False,
-    help="Enable extra debugging output",
-    type=click.BOOL,
-    envvar="BROWSR_DEBUG",
-    show_envvar=True,
-)
-@click.option(
-    "-k",
-    "--kwargs",
-    multiple=True,
-    help="Key=Value pairs to pass to the filesystem",
-    envvar="BROWSR_KWARGS",
-    show_envvar=True,
-)
-@click.option(
-    "--all-files",
-    default=False,
-    help="Select all files and sub-directories in a directory",
-    is_flag=True,
-)
-@click.option(
-    "--work-tree",
-    default=False,
-    help="create a new work-tree using git",
-    is_flag=True,
-)
-@click.pass_context
-def browsr(
-        cli_ctx: click.Context,
-        path: Optional[str],
-        file: List[str],
-        directory: List[str],
-        debug: bool,
-        max_lines: int,
-        max_file_size: int,
-        kwargs: Tuple[str, ...],
-        all_files: bool,
-        work_tree: bool,
-) -> None:
-    """
-    🗂️ control the enviroment and view the context passed to Terminal Agent.
-
-    Navigate through directories and select files whether they're hosted locally,
-    over SSH, in GitHub, AWS S3, Google Cloud Storage, or Azure Blob Storage.
-    View code files with syntax highlighting, format JSON files, render images,
-    convert data files to navigable datatables, and more.
-
-    \f
-
-    ![browsr](https://raw.githubusercontent.com/juftin/browsr/main/docs/_static/screenshot_utils.png)
-
-    ## Installation
-
-    It's recommended to install **`ctx`** via [pipx](https://pypa.github.io/pipx/)
-    with **`all`** optional dependencies, this enables **`ctx browsr`** to access
-    remote cloud storage buckets and open parquet files.
-
-    ```shell
-    pipx install "ctx[all]"
-    ```
-
-    ## Usage Examples
-
-    ### Local
-
-    #### Browse your current working directory
-
-    ```shell
-    ctx browsr
-    ```
-
-    #### Browse a local directory
-
-    ```shell
-    ctx brosr /path/to/directory
-    ```
-
-    ### Cloud Storage
-
-    #### Browse an S3 bucket
-
-    ```shell
-    ctx browsr s3://bucket-name
-    ```
-
-    #### Browse a GCS bucket
-
-    ```shell
-    ctx browsr gs://bucket-name
-    ```
-
-    #### Browse Azure Services
-
-    ```shell
-    ctx browsr adl://bucket-name
-    ctx browsr az://bucket-name
-    ```
-
-    #### Pass Extra Arguments to Cloud Storage
-
-    Some cloud storage providers require extra arguments to be passed to the
-    filesystem. For example, to browse an anonymous S3 bucket, you need to pass
-    the `anon=True` argument to the filesystem. This can be done with the `-k/--kwargs`
-    argument.
-
-    ```shell
-    ctx browsr s3://anonymous-bucket -k anon=True
-    ```
-
-    ### GitHub
-
-    #### Browse a GitHub repository
-
-    ```shell
-    ctx browsr github://juftin:browsr
-    ```
-
-    #### Browse a GitHub Repository Branch
-
-    ```shell
-    ctx browsr github://juftin:browsr@main
-    ```
-
-    #### Browse a Private GitHub Repository
-
-    ```shell
-    export GITHUB_TOKEN="ghp_1234567890"
-    ctx browsr github://Wacky404:ctx-container-private@main
-    ```
-
-    #### Browse a GitHub Repository Subdirectory
-
-    ```shell
-    ctx browsr github://Wacky404:ctx-container@main/tests
-    ```
-
-    #### Browse a GitHub URL
-
-    ```shell
-    ctx browsr https://github.com/Wacky404/ctx-container
-    ```
-
-    #### Browse a Filesystem over SSH
-
-    ```
-    ctx browsr ssh://user@host:22
-    ```
-
-    #### Browse a SFTP Server
-
-    ```
-    ctx browsr sftp://user@host:22/path/to/directory
-    ```
-
-    ## Key Bindings
-    - **`Q`** - Exit the application
-    - **`F`** - Toggle the file tree sidebar
-    - **`T`** - Toggle the rich theme for code formatting
-    - **`N`** - Toggle line numbers for code formatting
-    - **`D`** - Toggle dark mode for the application
-    - **`.`** - Parent Directory - go up one directory
-    - **`R`** - Reload the current directory
-    - **`C`** - Copy the current file or directory path to the clipboard
-    - **`X`** - Download the file from cloud storage
-    - **`S`** - Toggle Select a directory/file to be added to list
-    - **`O`** - Launch Agent
-    """
-    cli_ctx.obj['ctx']['commands']['browsr']['args'] = {"path": path}
-    cli_ctx.obj['ctx']['commands']['browsr']['flags'] = {
-        "--file": file,
-        "--directory": directory,
-        "--max-lines": max_lines,
-        "--max-file-size": max_file_size,
-        "--debug": debug,
-    }
-    if all_files:
-        click.echo("This is going to grab all files")
-    elif file or directory:
-        click.echo("File(s) to be passed into context")
-        grp: List[str] = file + directory
-        for y in grp:
-            click.echo(f"- {y}")
-    elif work_tree:
-        click.echo("create a git worktree")
-    else:
-        extra_kwargs = {}
-        if kwargs:
-            for kwarg in kwargs:
-                try:
-                    key, value = kwarg.split("=")
-                    extra_kwargs[key] = value
-                except ValueError as ve:
-                    raise click.BadParameter(
-                        message=(
-                            f"Invalid Key/Value pair: `{kwarg}` "
-                            "- must be in the format Key=Value"
-                        ),
-                        param_hint="kwargs",
-                    ) from ve
-        file_path = path or os.getcwd()
-        config = TextualAppContext(
-            file_path=file_path,
-            debug=debug,
-            max_file_size=max_file_size,
-            max_lines=max_lines,
-            kwargs=extra_kwargs,
-        )
-        app = Browsr(config_object=config)
-        app.run()
 
 
 @command_with_aliases(ctx, OC_ALIAS, name="opencode", cls=rich_click.rich_command.RichCommand, context_settings=dict(
